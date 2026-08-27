@@ -2,7 +2,7 @@ import { Hono } from "hono";
 import auth from "./routes/api/auth";
 // import { cors } from "hono/cors";
 // import { logger } from "hono/logger";
-// import musicRoute from "./routes/api/music_route";
+import musicRoute from "./routes/api/music_route";
 // import developerRoute from "./routes/api/doc";
 const app = new Hono();
 
@@ -25,7 +25,7 @@ const app = new Hono();
 //   return c.text("Hello Hono!");
 // });
 app.route("/auth", auth);
-// app.route("/music/v1", musicRoute);
+app.route("/music/v1", musicRoute);
 // app.route("/api/v1", developerRoute);
 
 app.get("/health", (c) => {
