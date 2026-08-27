@@ -1,4 +1,4 @@
-import { parseBuffer } from "music-metadata";
+import { parseWebStream } from "music-metadata";
 import cloudinary from "../configs/cloudinary";
 
 export type MusicMetadata = {
@@ -23,19 +23,38 @@ export type MusicMetadata = {
 };
 
 export async function extractMusicMetadata(
-  buffer: Buffer,
+  url: string,
   mimeType: string,
   fileSize: number,
 ): Promise<MusicMetadata> {
-  const metadata = await parseBuffer(buffer, {
-    mimeType,
-    size: fileSize,
-  });
+  const response = await fetch(url);
+
+  if (!response.ok) {
+    throw new Error(
+      `Failed to download audio: ${response.status} ${response.statusText}`,
+    );
+  }
+
+  if (!response.body) {
+    throw new Error("Audio response has no body");
+  }
+
+  const metadata = await parseWebStream(
+    response.body,
+    {
+      mimeType,
+      size: fileSize,
+    },
+    {
+      duration: true,
+      skipCovers: false,
+    },
+  );
 
   const common = metadata.common;
   const format = metadata.format;
 
-  let cover: MusicMetadata["cover"] = undefined;
+  let cover: MusicMetadata["cover"];
 
   const picture = common.picture?.[0];
 
@@ -53,10 +72,6 @@ export async function extractMusicMetadata(
       publicId: uploadedCover.public_id,
       url: uploadedCover.secure_url,
     };
-
-    console.log("Cover uploaded:", uploadedCover.secure_url);
-  } else {
-    console.log("No embedded cover found");
   }
 
   return {
@@ -70,6 +85,7 @@ export async function extractMusicMetadata(
 
     duration: format.duration,
     bitrate: format.bitrate ? Math.round(format.bitrate) : undefined,
+
     sampleRate: format.sampleRate ? Math.round(format.sampleRate) : undefined,
 
     codec: format.codec,

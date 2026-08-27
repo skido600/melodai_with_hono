@@ -1,110 +1,8 @@
 import type { Context } from "hono";
 import { db } from "../configs";
 import { songs, users } from "../configs/schema";
-// import { extractMusicMetadata } from "../services/metadata.service";
+import { extractMusicMetadata } from "../services/metadata.service";
 import { desc, eq, ilike, and, sql, or } from "drizzle-orm";
-// export async function completeMusicUpload(c: Context) {
-//   try {
-//     const userId = c.get("userId");
-
-//     if (!userId) {
-//       return c.json(
-//         {
-//           success: false,
-//           message: "Unauthorized",
-//           data: null,
-//         },
-//         401,
-//       );
-//     }
-
-//     const { secureUrl, publicId, fileName, fileSize, mimeType } =
-//       await c.req.json();
-
-//     if (!secureUrl || !publicId || !fileName || !fileSize || !mimeType) {
-//       return c.json(
-//         {
-//           success: false,
-//           message: "Missing upload information",
-//           data: null,
-//         },
-//         400,
-//       );
-//     }
-
-//     const audioResponse = await fetch(secureUrl);
-
-//     if (!audioResponse.ok) {
-//       throw new Error(`Cloudinary download failed: ${audioResponse.status}`);
-//     }
-
-//     const arrayBuffer = await audioResponse.arrayBuffer();
-
-//     const buffer = Buffer.from(arrayBuffer);
-
-//     const metadata = await extractMusicMetadata(buffer, mimeType, fileSize);
-
-//     const [song] = await db
-//       .insert(songs)
-//       .values({
-//         userId,
-
-//         title: metadata.title ?? fileName.replace(/\.[^/.]+$/, ""),
-
-//         artist: metadata.artist ?? null,
-
-//         album: metadata.album ?? null,
-
-//         albumArtist: metadata.albumArtist ?? null,
-
-//         genre: metadata.genre ?? null,
-
-//         year: metadata.year ?? null,
-
-//         duration: metadata.duration ?? null,
-
-//         bitrate: metadata.bitrate ?? null,
-
-//         sampleRate: metadata.sampleRate ?? null,
-
-//         codec: metadata.codec ?? null,
-
-//         container: metadata.container ?? null,
-
-//         fileName,
-
-//         fileSize,
-
-//         mimeType,
-
-//         audioPubId: publicId,
-
-//         audioUrl: secureUrl,
-
-//         coverPubId: metadata.cover?.publicId ?? null,
-
-//         coverUrl: metadata.cover?.url ?? null,
-//       })
-//       .returning();
-
-//     return c.json({
-//       success: true,
-//       message: "Music uploaded successfully",
-//       data: song,
-//     });
-//   } catch (error) {
-//     console.error("Complete music upload error:", error);
-
-//     return c.json(
-//       {
-//         success: false,
-//         message: "Could not process music",
-//         data: error,
-//       },
-//       500,
-//     );
-//   }
-// }
 export async function completeMusicUpload(c: Context) {
   try {
     const userId = c.get("userId");
@@ -134,35 +32,58 @@ export async function completeMusicUpload(c: Context) {
       );
     }
 
+    // const audioResponse = await fetch(secureUrl);
+
+    // if (!audioResponse.ok) {
+    //   throw new Error(`Cloudinary download failed: ${audioResponse.status}`);
+    // }
+
+    // const arrayBuffer = await audioResponse.arrayBuffer();
+
+    // const buffer = Buffer.from(arrayBuffer);
+
+    const metadata = await extractMusicMetadata(secureUrl, mimeType, fileSize);
+
     const [song] = await db
       .insert(songs)
       .values({
         userId,
 
-        title: fileName.replace(/\.[^/.]+$/, ""),
+        title: metadata.title ?? fileName.replace(/\.[^/.]+$/, ""),
 
-        artist: null,
-        album: null,
-        albumArtist: null,
-        genre: null,
-        year: null,
+        artist: metadata.artist ?? null,
 
-        duration: null,
-        bitrate: null,
-        sampleRate: null,
+        album: metadata.album ?? null,
 
-        codec: null,
-        container: null,
+        albumArtist: metadata.albumArtist ?? null,
+
+        genre: metadata.genre ?? null,
+
+        year: metadata.year ?? null,
+
+        duration: metadata.duration ?? null,
+
+        bitrate: metadata.bitrate ?? null,
+
+        sampleRate: metadata.sampleRate ?? null,
+
+        codec: metadata.codec ?? null,
+
+        container: metadata.container ?? null,
 
         fileName,
+
         fileSize,
+
         mimeType,
 
         audioPubId: publicId,
+
         audioUrl: secureUrl,
 
-        coverPubId: null,
-        coverUrl: null,
+        coverPubId: metadata.cover?.publicId ?? null,
+
+        coverUrl: metadata.cover?.url ?? null,
       })
       .returning();
 
@@ -178,12 +99,13 @@ export async function completeMusicUpload(c: Context) {
       {
         success: false,
         message: "Could not process music",
-        data: null,
+        data: error,
       },
       500,
     );
   }
 }
+
 export async function getAllMusic(c: Context) {
   try {
     const query = c.req.query("q")?.trim();
