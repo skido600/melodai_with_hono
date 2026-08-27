@@ -1,0 +1,10 @@
+[
+  {
+    "corsRuleName": "melodiaUpload",
+    "allowedOrigins": ["http://localhost:4000"],
+    "allowedHeaders": ["*"],
+    "allowedOperations": ["s3_put"],
+    "exposeHeaders": ["ETag"],
+    "maxAgeSeconds": 3600
+  }
+]
