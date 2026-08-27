@@ -1,7 +1,7 @@
 import type { Context } from "hono";
 import { db } from "../configs";
 import { songs, users } from "../configs/schema";
-import { extractMusicMetadata } from "../services/metadata.service";
+// import { extractMusicMetadata } from "../services/metadata.service";
 import { desc, eq, ilike, and, sql, or } from "drizzle-orm";
 // export async function completeMusicUpload(c: Context) {
 //   try {
@@ -106,10 +106,83 @@ import { desc, eq, ilike, and, sql, or } from "drizzle-orm";
 //   }
 // }
 export async function completeMusicUpload(c: Context) {
-  return c.json({
-    success: true,
-    message: "test",
-  });
+  try {
+    const userId = c.get("userId");
+
+    if (!userId) {
+      return c.json(
+        {
+          success: false,
+          message: "Unauthorized",
+          data: null,
+        },
+        401,
+      );
+    }
+
+    const { secureUrl, publicId, fileName, fileSize, mimeType } =
+      await c.req.json();
+
+    if (!secureUrl || !publicId || !fileName || !fileSize || !mimeType) {
+      return c.json(
+        {
+          success: false,
+          message: "Missing upload information",
+          data: null,
+        },
+        400,
+      );
+    }
+
+    const [song] = await db
+      .insert(songs)
+      .values({
+        userId,
+
+        title: fileName.replace(/\.[^/.]+$/, ""),
+
+        artist: null,
+        album: null,
+        albumArtist: null,
+        genre: null,
+        year: null,
+
+        duration: null,
+        bitrate: null,
+        sampleRate: null,
+
+        codec: null,
+        container: null,
+
+        fileName,
+        fileSize,
+        mimeType,
+
+        audioPubId: publicId,
+        audioUrl: secureUrl,
+
+        coverPubId: null,
+        coverUrl: null,
+      })
+      .returning();
+
+    return c.json({
+      success: true,
+      message: "Music uploaded successfully",
+      data: song,
+    });
+  } catch (error) {
+    console.error("Complete music upload error:", error);
+
+    return c.json(
+      {
+        success: false,
+        message: "Could not process music",
+        data: null,
+      },
+      500,
+    );
+  }
 }
 export async function getAllMusic(c: Context) {
   try {
