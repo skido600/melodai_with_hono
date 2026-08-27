@@ -1,4 +1,4 @@
-import { parseWebStream } from "music-metadata";
+import { parseBuffer } from "music-metadata";
 import cloudinary from "../configs/cloudinary";
 
 export type MusicMetadata = {
@@ -27,6 +27,8 @@ export async function extractMusicMetadata(
   mimeType: string,
   fileSize: number,
 ): Promise<MusicMetadata> {
+  console.log("Downloading audio from Cloudinary...");
+
   const response = await fetch(url);
 
   if (!response.ok) {
@@ -35,30 +37,33 @@ export async function extractMusicMetadata(
     );
   }
 
-  if (!response.body) {
-    throw new Error("Audio response has no body");
+  const arrayBuffer = await response.arrayBuffer();
+  const buffer = Buffer.from(arrayBuffer);
+
+  console.log(`Downloaded ${buffer.length} bytes`);
+
+  if (!buffer.length) {
+    throw new Error("Audio file is empty");
   }
 
-  const metadata = await parseWebStream(
-    response.body,
-    {
-      mimeType,
-      size: fileSize,
-    },
-    {
-      duration: true,
-      skipCovers: false,
-    },
-  );
+  console.log("Extracting music metadata...");
+
+  const metadata = await parseBuffer(buffer, {
+    mimeType,
+    size: fileSize,
+  });
 
   const common = metadata.common;
   const format = metadata.format;
 
   let cover: MusicMetadata["cover"];
 
+  // Extract embedded album artwork
   const picture = common.picture?.[0];
 
   if (picture) {
+    console.log("Album artwork found. Uploading cover...");
+
     const base64 = Buffer.from(picture.data).toString("base64");
 
     const dataUri = `data:${picture.format};base64,${base64}`;
@@ -72,6 +77,8 @@ export async function extractMusicMetadata(
       publicId: uploadedCover.public_id,
       url: uploadedCover.secure_url,
     };
+
+    console.log("Cover uploaded successfully");
   }
 
   return {
@@ -84,6 +91,7 @@ export async function extractMusicMetadata(
     year: common.year,
 
     duration: format.duration,
+
     bitrate: format.bitrate ? Math.round(format.bitrate) : undefined,
 
     sampleRate: format.sampleRate ? Math.round(format.sampleRate) : undefined,
