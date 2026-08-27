@@ -1,5 +1,4 @@
 import { parseBuffer } from "music-metadata";
-import cloudinary from "../configs/cloudinary";
 
 export type MusicMetadata = {
   title?: string;
@@ -27,9 +26,11 @@ export async function extractMusicMetadata(
   mimeType: string,
   fileSize: number,
 ): Promise<MusicMetadata> {
-  console.log("Downloading audio from Cloudinary...");
+  console.log("METADATA: downloading:", url);
 
   const response = await fetch(url);
+
+  console.log("METADATA: response:", response.status);
 
   if (!response.ok) {
     throw new Error(
@@ -38,48 +39,33 @@ export async function extractMusicMetadata(
   }
 
   const arrayBuffer = await response.arrayBuffer();
-  const buffer = Buffer.from(arrayBuffer);
 
-  console.log(`Downloaded ${buffer.length} bytes`);
+  console.log("METADATA: downloaded bytes:", arrayBuffer.byteLength);
 
-  if (!buffer.length) {
+  if (arrayBuffer.byteLength === 0) {
     throw new Error("Audio file is empty");
   }
 
-  console.log("Extracting music metadata...");
+  const buffer = Buffer.from(arrayBuffer);
 
-  const metadata = await parseBuffer(buffer, {
-    mimeType,
-    size: fileSize,
-  });
+  console.log("METADATA: parsing...");
+
+  const metadata = await parseBuffer(
+    buffer,
+    {
+      mimeType,
+      size: fileSize,
+    },
+    {
+      duration: true,
+      skipCovers: true,
+    },
+  );
+
+  console.log("METADATA: parsed successfully");
 
   const common = metadata.common;
   const format = metadata.format;
-
-  let cover: MusicMetadata["cover"];
-
-  // Extract embedded album artwork
-  const picture = common.picture?.[0];
-
-  if (picture) {
-    console.log("Album artwork found. Uploading cover...");
-
-    const base64 = Buffer.from(picture.data).toString("base64");
-
-    const dataUri = `data:${picture.format};base64,${base64}`;
-
-    const uploadedCover = await cloudinary.uploader.upload(dataUri, {
-      resource_type: "image",
-      folder: "melodia/covers",
-    });
-
-    cover = {
-      publicId: uploadedCover.public_id,
-      url: uploadedCover.secure_url,
-    };
-
-    console.log("Cover uploaded successfully");
-  }
 
   return {
     title: common.title,
@@ -99,6 +85,6 @@ export async function extractMusicMetadata(
     codec: format.codec,
     container: format.container,
 
-    cover,
+    cover: undefined,
   };
 }
