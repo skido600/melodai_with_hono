@@ -36,7 +36,7 @@ export default function SignUp() {
               width={200}
               height={200}
               alt="Melodia Logo"
-              className="h-16 w-16 rounded-xl bg-[#061417] p-2"
+              className="h-16 w-16 rounded-xl  p-2"
             />
           </div>
 

@@ -12,11 +12,11 @@ export default function Page() {
               width={200}
               height={200}
               alt="Melodia Logo"
-              className="h-16 w-16 rounded-xl bg-[#061417] p-2"
+              className="h-16 w-16 rounded-xl  p-2"
             />
           </div>
           <div className="mt-8 text-center text-white">
-            <h1 className="text-3xl font-bold">Welcome to Melodias</h1>
+            <h1 className="text-3xl font-bold">Welcome to Melodia</h1>
 
             <p className="mt-3 text-sm leading-6 text-gray-400">
               Discover, listen and enjoy your favorite music. Find new sounds,
@@ -25,10 +25,11 @@ export default function Page() {
           </div>
           {/* Get Started */}
           <div className="mt-8 w-full">
-            <Link
-              href="/signup"
-              className="block w-full rounded-full bg-green-600 py-3 text-center font-medium text-white transition hover:bg-green-500">
-              Get started
+            <Link href="/signup">
+              {" "}
+              <button className="border-2 w-full border-green-900 rounded-full text-white py-2">
+                Get Started
+              </button>
             </Link>
           </div>
         </div>
