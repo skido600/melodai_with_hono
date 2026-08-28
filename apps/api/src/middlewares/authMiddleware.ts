@@ -107,7 +107,8 @@ export async function requireAuth(c: Context, next: Next) {
     setCookie(c, "accessToken", newAccessToken, {
       httpOnly: true,
       secure: isProduction,
-      sameSite: "Lax",
+      sameSite: "None",
+
       path: "/",
       maxAge: FIFTEEN_MINUTES_SECONDS,
     });

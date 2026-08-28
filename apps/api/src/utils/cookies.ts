@@ -11,14 +11,15 @@ export function setAuthCookies(
   // setCookie(c, "accessToken", accessToken, {
   //   httpOnly: true,
   //   secure: isProduction,
-  //   sameSite: "Lax",
+  //   sameSite: "None"
+
   //   path: "/",
   //   maxAge: 15 * 60,
   // });
   setCookie(c, "accessToken", accessToken, {
     httpOnly: true,
     secure: isProduction,
-    sameSite: "Lax",
+    sameSite: "None",
     path: "/",
     maxAge: FIFTEEN_MINUTES_SECONDS,
   });
@@ -26,14 +27,16 @@ export function setAuthCookies(
   // setCookie(c, "refreshToken", refreshToken, {
   //   httpOnly: true,
   //   secure: isProduction,
-  //   sameSite: "Lax",
+  //   sameSite: "None"
+
   //   path: "/",
   //   maxAge: 7 * 24 * 60 * 60,
   // });
   setCookie(c, "refreshToken", refreshToken, {
     httpOnly: true,
     secure: isProduction,
-    sameSite: "Lax",
+    sameSite: "None",
+
     path: "/",
     maxAge: 60 * 60 * 24 * 7,
   });

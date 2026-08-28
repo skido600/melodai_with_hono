@@ -1,5 +1,5 @@
 import DashboardClientLayout from "@/components/DashboardClientLayout";
-import { cookies } from "next/headers";
+// import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
 const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL!;
@@ -9,14 +9,11 @@ export default async function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const cookieStore = await cookies();
+  // const cookieStore = await cookies();
 
   const res = await fetch(`${backendUrl}/auth/me`, {
     method: "GET",
-    headers: {
-      Cookie: cookieStore.toString(),
-    },
-    cache: "no-store",
+    credentials: "include",
   });
 
   const data = await res.json();
