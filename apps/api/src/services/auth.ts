@@ -6,7 +6,7 @@ import { generateTokens } from "../utils/auth_token";
 import { getCookie, deleteCookie } from "hono/cookie";
 import { eq } from "drizzle-orm";
 import { sessions, users } from "../configs/schema";
-import { setAuthCookies } from "../utils/cookies";
+import { clearAuthCookies, setAuthCookies } from "../utils/cookies";
 import { db } from "../configs";
 import { env } from "../env";
 
@@ -176,14 +176,7 @@ export class AuthController {
       }
 
       // Clear authentication cookies
-      deleteCookie(c, "accessToken", {
-        path: "/",
-      });
-
-      deleteCookie(c, "refreshToken", {
-        path: "/",
-      });
-
+      clearAuthCookies(c);
       return c.json({
         success: true,
         message: "Logged out successfully",

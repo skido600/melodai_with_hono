@@ -44,18 +44,16 @@ export function setAuthCookies(
 
 export function clearAuthCookies(c: Context) {
   deleteCookie(c, "accessToken", {
+    httpOnly: true,
+    secure: isProduction,
+    sameSite: "None",
     path: "/",
   });
 
   deleteCookie(c, "refreshToken", {
+    httpOnly: true,
+    secure: isProduction,
+    sameSite: "None",
     path: "/",
   });
-  return c.json(
-    {
-      success: false,
-      message: "Unauthorized",
-      data: null,
-    },
-    401,
-  );
 }

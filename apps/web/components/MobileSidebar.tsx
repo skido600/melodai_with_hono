@@ -5,10 +5,12 @@ import Image from "next/image";
 import { navigation } from "@/util/navigvation";
 import toast from "react-hot-toast";
 import { useLogout } from "@/hooks/useLogout";
+import { useRouter } from "next/navigation";
 import Logo from "./Logo";
 function MobileSidebar() {
   const menuItems = navigation;
   const logoutMutation = useLogout();
+  const router = useRouter();
   const logout = {
     name: "Logout",
 
@@ -20,7 +22,7 @@ function MobileSidebar() {
         toast.success("Logged out successfully");
 
         setTimeout(() => {
-          window.location.href = "/signup";
+          router.push("/signup");
         }, 500);
       },
 
@@ -50,7 +52,7 @@ function MobileSidebar() {
         <Logo h={40} w={40} />
         {menuItems.map((route, index) => (
           <Link href={route.path} key={index}>
-            <div className="flex gap-x-2 ml-2 items-center cursor-pointer">
+            <div className="flex gap-x-2 ml-3 items-center cursor-pointer">
               <Image
                 src={route.img}
                 alt={route.name}
@@ -65,7 +67,7 @@ function MobileSidebar() {
 
       {/* Logout */}
       {/* Logout */}
-      <div className="mt-auto pb-6 ml-2">
+      <div className="mt-auto pb-6 ml-3">
         <div
           role="button"
           aria-disabled={logoutMutation.isPending}

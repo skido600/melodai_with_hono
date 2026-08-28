@@ -56,7 +56,7 @@ export default function DashboardClientLayout({
           }`}>
           <TopNav />
 
-          <main className="px-2 mb-17 py-6">{children}</main>
+          <main className="px-3 mb-17 py-6">{children}</main>
         </div>
 
         <div
