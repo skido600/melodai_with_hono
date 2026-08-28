@@ -26,12 +26,7 @@ app.use(
 );
 
 app.route("/auth", auth);
-app.get("/test-music", (c) => {
-  return c.json({
-    success: true,
-    message: "Music route test works",
-  });
-});
+
 app.route("/music/v1", musicRoute);
 app.route("/api/v1", developerRoute);
 
