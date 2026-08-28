@@ -1,8 +1,8 @@
 "use server";
-
+const API_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
 export async function login() {
   try {
-    const res = await fetch("http://localhost:3000/auth/google/url", {
+    const res = await fetch(`${API_URL}/auth/google/url`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

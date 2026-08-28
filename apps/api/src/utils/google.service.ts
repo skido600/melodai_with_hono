@@ -7,9 +7,23 @@ export const oauth2Client = new google.auth.OAuth2(
   `${env.BACKEND_URL}/auth/google/callback`,
 );
 
+// export const getGoogleAuthUrl = (redirectTo?: string) => {
+//   return oauth2Client.generateAuthUrl({
+//     access_type: "offline",
+//     scope: ["openid", "email", "profile"],
+//   });
+// };
 export const getGoogleAuthUrl = (redirectTo?: string) => {
-  return oauth2Client.generateAuthUrl({
+  const url = oauth2Client.generateAuthUrl({
     access_type: "offline",
     scope: ["openid", "email", "profile"],
   });
+
+  console.log("GOOGLE OAUTH URL:", url);
+  console.log(
+    "GOOGLE REDIRECT URI:",
+    `${env.BACKEND_URL}/auth/google/callback`,
+  );
+
+  return url;
 };
