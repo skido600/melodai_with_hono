@@ -5,6 +5,7 @@ import { FcGoogle } from "react-icons/fc";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { login } from "../../../lib/api";
+import toast from "react-hot-toast";
 
 export default function SignUp() {
   const router = useRouter();
@@ -14,11 +15,12 @@ export default function SignUp() {
     setLoading(true);
 
     const result = await login();
-
+    console.log(result);
     if (result.success && result.url) {
       router.push(result.url);
     } else {
-      alert(result.error);
+      console.log(result.error);
+      toast.error(result.error as string);
     }
 
     setLoading(false);
