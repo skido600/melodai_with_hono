@@ -5,8 +5,10 @@ import { useMobile } from "@/hooks/MobileContext";
 import { useMusicPlayer } from "@/hooks/MusicProvider";
 import Image from "next/image";
 import { X, Play, Pause } from "lucide-react";
+
 export function MusicPlayer() {
   const { open } = useMobile();
+
   const {
     currentSong,
     isPlaying,
@@ -44,7 +46,7 @@ export function MusicPlayer() {
         lg:left-60
         lg:ml-0
       `}>
-      <div className=" flex  items-center gap-4">
+      <div className="flex min-w-0 items-center gap-4">
         {/* Cover */}
         <div className="h-12 w-12 shrink-0 overflow-hidden rounded-md bg-white/10">
           {currentSong.coverUrl ? (
@@ -62,7 +64,7 @@ export function MusicPlayer() {
         </div>
 
         {/* Song info */}
-        <div className="min-w-0 w-40">
+        <div className="min-w-0 w-40 shrink">
           <h3 className="truncate text-sm font-medium">{currentSong.title}</h3>
 
           <p className="truncate text-xs text-white/50">
@@ -71,8 +73,8 @@ export function MusicPlayer() {
         </div>
 
         {/* Progress */}
-        <div className="flex flex-1 items-center gap-2">
-          <span className="text-xs text-white/50">
+        <div className="flex min-w-0 flex-1 items-center gap-2">
+          <span className="shrink-0 text-xs text-white/50">
             {formatDuration(currentTime)}
           </span>
 
@@ -86,10 +88,10 @@ export function MusicPlayer() {
             onChange={(e) => {
               seek(Number(e.target.value));
             }}
-            className="w-full cursor-pointer"
+            className="block min-w-0 w-full cursor-pointer"
           />
 
-          <span className="text-xs text-white/50">
+          <span className="shrink-0 text-xs text-white/50">
             {formatDuration(duration)}
           </span>
         </div>
@@ -113,7 +115,7 @@ export function MusicPlayer() {
         <button
           type="button"
           onClick={closePlayer}
-          className="text-xl text-white/60 hover:text-white">
+          className="shrink-0 text-xl text-white/60 hover:text-white">
           <X size={18} />
         </button>
       </div>
