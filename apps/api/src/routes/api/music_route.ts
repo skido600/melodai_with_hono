@@ -21,5 +21,10 @@ musicRoute.get("/recent", requireAuth, getRecentMusic);
 musicRoute.post("/:id/play", requireAuth, playMusic);
 musicRoute.get("/top", requireAuth, getTopMusic);
 musicRoute.delete("/:id", requireAuth, deleteMusic);
-
+// musicRoute.get("/test-music", (c) => {
+//   return c.json({
+//     success: true,
+//     message: "Music route test works",
+//   });
+// });
 export default musicRoute;
