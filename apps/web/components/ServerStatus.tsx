@@ -15,7 +15,7 @@ export default function ServerStatus() {
   const online = !isError && data?.success === true;
 
   return (
-    <div className="fixed top-5 right-5 z-9999">
+    <div className="fixed bottom-5 right-5 z-9999">
       <div className="flex items-center gap-2 rounded-full border border-white/10 bg-[#101010]/95 px-3 py-2 text-xs text-white shadow-lg backdrop-blur-md">
         <span
           className={`h-2 w-2 rounded-full ${
@@ -27,7 +27,7 @@ export default function ServerStatus() {
           }`}
         />
 
-        <span>
+        <span className="text-xs">
           {online
             ? "Server online"
             : isLoading || isFetching
