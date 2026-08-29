@@ -215,3 +215,13 @@ export async function logout() {
 
   return data;
 }
+
+export async function checkServer() {
+  const response = await fetch(`${API_URL}/health`, { method: "GET" });
+
+  if (!response.ok) {
+    throw new Error("Server is offline");
+  }
+
+  return response.json();
+}

@@ -4,6 +4,8 @@ import "./globals.css";
 import { MobileProvider } from "@/hooks/MobileContext";
 import { ReactQueryProvider } from "@/context/TansackQuery";
 import { Toaster } from "react-hot-toast";
+import ServerStatus from "@/components/ServerStatus";
+
 const jakartaSans = Plus_Jakarta_Sans({
   variable: "--font-jakarta-sans",
   subsets: ["latin"],
@@ -86,6 +88,7 @@ export default function RootLayout({
         <MobileProvider>
           <body className={`${jakartaSans.variable}`}>
             {" "}
+            <ServerStatus />{" "}
             <Toaster
               position="top-right"
               toastOptions={{
