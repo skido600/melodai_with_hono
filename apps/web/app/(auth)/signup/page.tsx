@@ -53,10 +53,6 @@ export default function SignUp() {
             <FcGoogle size={24} />
             {loading ? "Redirecting..." : "Continue with Google"}
           </button>
-
-          <p className="mt-6 text-center text-sm text-gray-500">
-            By continuing, you agree to our Terms of Service and Privacy Policy.
-          </p>
         </div>
       </section>
     </main>
