@@ -4,7 +4,10 @@ import "dotenv/config";
 export const envSchema = z.object({
   GOOGLE_CLIENT_SECRET: z.string(),
   GOOGLE_CLIENT_ID: z.string(),
-
+  NODE_ENV: z
+    .enum(["development", "production", "test"])
+    .default("development"),
+  VERCEL_ENV: z.enum(["production", "preview", "development"]).optional(),
   JWT_ACCESS_SECRET: z.string(),
   JWT_REFRESH_SECRET: z.string(),
   DATABASE_URL: z.string(),
@@ -13,6 +16,7 @@ export const envSchema = z.object({
   CLOUDINARY_CLOUD_NAME: z.string(),
   CLOUDINARY_API_KEY: z.string(),
   CLOUDINARY_API_SECRET: z.string(),
+  COOKIE_SECRET: z.string(),
 });
 
 export const env = envSchema.parse(process.env);

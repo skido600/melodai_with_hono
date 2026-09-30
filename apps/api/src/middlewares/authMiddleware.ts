@@ -1,21 +1,38 @@
 import type { Context, Next } from "hono";
-import { sign, verify } from "hono/jwt";
-import { getCookie, setCookie } from "hono/cookie";
+import { getSignedCookie } from "hono/cookie";
+import { verify, sign } from "hono/jwt";
 import { and, eq } from "drizzle-orm";
-import { env } from "../env";
-import { db } from "../configs";
-import { sessions } from "../configs/schema";
-import { clearAuthCookies } from "../utils/cookies";
-import { FIFTEEN_MINUTES_SECONDS } from "../utils/auth_token";
 
-const isProduction = process.env.NODE_ENV === "production";
+import { env } from "../env";
+
+import {
+  clearAuthCookies,
+  setAuthCookies,
+  FIFTEEN_MINUTES_SECONDS,
+} from "../utils/cookies";
+import { db } from "../configs";
+import { sessions, users } from "../configs/schema";
 
 export async function requireAuth(c: Context, next: Next) {
   try {
-    const accessToken = getCookie(c, "accessToken");
+    // Signed cookies
+    const accessToken = await getSignedCookie(
+      c,
+      env.COOKIE_SECRET,
+      "accessToken",
+    );
 
-    //  1. Try access token if it exists
+    const refreshToken = await getSignedCookie(
+      c,
+      env.COOKIE_SECRET,
+      "refreshToken",
+    );
 
+    console.log("AUTH DEBUG");
+    console.log("accessToken exists:", !!accessToken);
+    console.log("refreshToken exists:", !!refreshToken);
+
+    // 1. Access token
     if (accessToken) {
       try {
         const payload = await verify(
@@ -25,29 +42,27 @@ export async function requireAuth(c: Context, next: Next) {
         );
 
         const userId = payload.id as string;
+        const role = payload.role as string;
 
-        if (!userId) {
+        if (!userId || !role) {
           return clearAuthCookies(c);
         }
 
-        c.set("userId", userId);
+        c.set("userId", {
+          id: userId,
+          role,
+        });
 
         return next();
       } catch {
-        console.log("Access token expired/invalid. Trying refresh token...");
+        console.log("Access token expired/invalid");
       }
     }
 
-    //  2. Access token is missing or expired.
-    //    Try refresh token.
-
-    const refreshToken = getCookie(c, "refreshToken");
-
+    // 2. Refresh token
     if (!refreshToken) {
       return clearAuthCookies(c);
     }
-
-    //  3. Verify refresh token
 
     let refreshPayload;
 
@@ -59,7 +74,6 @@ export async function requireAuth(c: Context, next: Next) {
       );
     } catch {
       console.log("Refresh token expired/invalid");
-
       return clearAuthCookies(c);
     }
 
@@ -69,60 +83,63 @@ export async function requireAuth(c: Context, next: Next) {
       return clearAuthCookies(c);
     }
 
-    // 4. Check refresh token against database
-
-    const session = await db.query.sessions.findFirst({
-      where: and(
-        eq(sessions.refreshToken, refreshToken),
-        eq(sessions.userId, userId),
-      ),
-    });
+    // 3. Check session
+    const [session] = await db
+      .select()
+      .from(sessions)
+      .where(
+        and(
+          eq(sessions.refreshToken, refreshToken),
+          eq(sessions.userId, userId),
+        ),
+      )
+      .limit(1);
 
     if (!session) {
       console.log("Refresh token not found in database");
-
       return clearAuthCookies(c);
     }
-
-    //  5. Check database expiration
 
     if (session.expiresAt < new Date()) {
       console.log("Refresh token expired in database");
-
       return clearAuthCookies(c);
     }
 
-    // 6. Create new access token
+    // 4. Get current user
+    const [user] = await db
+      .select({
+        id: users.id,
+        email: users.email,
+        full_name: users.username,
+      })
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1);
 
+    if (!user) {
+      return clearAuthCookies(c);
+    }
+
+    // 5. Create new access token
     const newAccessToken = await sign(
       {
-        id: userId,
+        id: user.id,
+
         exp: Math.floor(Date.now() / 1000) + FIFTEEN_MINUTES_SECONDS,
       },
       env.JWT_ACCESS_SECRET,
     );
 
-    // 7. Replace access token cookie
+    // 6. Replace access cookie
+    await setAuthCookies(c, newAccessToken, refreshToken);
 
-    setCookie(c, "accessToken", newAccessToken, {
-      httpOnly: true,
-      secure: isProduction,
-      sameSite: "None",
-
-      path: "/",
-      maxAge: FIFTEEN_MINUTES_SECONDS,
+    c.set("userId", {
+      id: user.id,
     });
-
-    // 8. Authenticate the request
-
-    c.set("userId", userId);
-
-    //  9. Continue original request
 
     return next();
   } catch (error) {
     console.error("Auth middleware error:", error);
-
     return clearAuthCookies(c);
   }
 }

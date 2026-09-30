@@ -1,59 +1,69 @@
-import { setCookie, deleteCookie } from "hono/cookie";
 import type { Context } from "hono";
+import { getSignedCookie, setSignedCookie, deleteCookie } from "hono/cookie";
 
-const isProduction = process.env.NODE_ENV === "production";
+import { env } from "../env";
+
 export const FIFTEEN_MINUTES_SECONDS = 15 * 60;
-export function setAuthCookies(
+export const REFRESH_TOKEN_SECONDS = 60 * 60 * 24 * 7;
+const isProd = env.VERCEL_ENV === "production";
+
+export const cookieOptions = {
+  httpOnly: true,
+  secure: isProd,
+  sameSite: "Lax" as const,
+  path: "/",
+};
+
+export async function setAuthCookies(
   c: Context,
   accessToken: string,
   refreshToken: string,
 ) {
-  // setCookie(c, "accessToken", accessToken, {
-  //   httpOnly: true,
-  //   secure: isProduction,
-  //   sameSite: "None"
-
-  //   path: "/",
-  //   maxAge: 15 * 60,
-  // });
-  setCookie(c, "accessToken", accessToken, {
-    httpOnly: true,
-    secure: isProduction,
-    sameSite: "None",
-    path: "/",
+  await setSignedCookie(c, "accessToken", accessToken, env.COOKIE_SECRET, {
+    ...cookieOptions,
     maxAge: FIFTEEN_MINUTES_SECONDS,
   });
 
-  // setCookie(c, "refreshToken", refreshToken, {
-  //   httpOnly: true,
-  //   secure: isProduction,
-  //   sameSite: "None"
-
-  //   path: "/",
-  //   maxAge: 7 * 24 * 60 * 60,
-  // });
-  setCookie(c, "refreshToken", refreshToken, {
-    httpOnly: true,
-    secure: isProduction,
-    sameSite: "None",
-
-    path: "/",
-    maxAge: 60 * 60 * 24 * 7,
+  await setSignedCookie(c, "refreshToken", refreshToken, env.COOKIE_SECRET, {
+    ...cookieOptions,
+    maxAge: REFRESH_TOKEN_SECONDS,
   });
 }
 
-export function clearAuthCookies(c: Context) {
+export async function getAuthCookies(c: Context) {
+  const accessToken = await getSignedCookie(
+    c,
+    env.COOKIE_SECRET,
+    "accessToken",
+  );
+
+  const refreshToken = await getSignedCookie(
+    c,
+    env.COOKIE_SECRET,
+    "refreshToken",
+  );
+
+  return {
+    accessToken,
+    refreshToken,
+  };
+}
+
+export async function clearAuthCookies(c: Context) {
   deleteCookie(c, "accessToken", {
-    httpOnly: true,
-    secure: isProduction,
-    sameSite: "None",
-    path: "/",
+    ...cookieOptions,
   });
 
   deleteCookie(c, "refreshToken", {
-    httpOnly: true,
-    secure: isProduction,
-    sameSite: "None",
-    path: "/",
+    ...cookieOptions,
   });
+
+  return c.json(
+    {
+      success: false,
+      message: "Unauthorized",
+      data: null,
+    },
+    401,
+  );
 }
