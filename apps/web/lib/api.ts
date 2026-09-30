@@ -1,4 +1,3 @@
-"use server";
 const API_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
 export async function login() {
   try {
@@ -8,7 +7,6 @@ export async function login() {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({}),
-      cache: "no-store",
     });
 
     if (!res.ok) {
