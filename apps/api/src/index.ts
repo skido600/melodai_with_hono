@@ -24,7 +24,9 @@ app.use(
     credentials: true,
   }),
 );
-
+console.log("GOOGLE CALLBACK:", GOOGLE_CALLBACK_URL);
+console.log("FRONTEND URL:", env.FRONTEND_URL);
+console.log("GOOGLE CLIENT ID:", env.GOOGLE_CLIENT_ID);
 app.route("/auth", auth);
 
 app.route("/music/v1", musicRoute);
