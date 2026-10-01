@@ -106,7 +106,7 @@ export const apiKeys = pgTable("api_keys", {
 
   name: text("name").notNull(),
 
-  keyHash: text("key_hash").notNull().unique(),
+  encryptedKey: text("encrypted_key").notNull(),
 
   userId: uuid("user_id")
     .references(() => users.id, { onDelete: "cascade" })

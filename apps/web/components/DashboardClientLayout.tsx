@@ -18,30 +18,30 @@ export default function DashboardClientLayout({
 }) {
   const { open } = useMobile();
   const router = useRouter();
-  const [loading, setLoading] = useState(true);
-  useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const res = await fetch(`${backendUrl}/auth/me`, {
-          method: "GET",
-          credentials: "include",
-        });
-        const data = await res.json();
-        if (!res.ok || !data.success) {
-          console.log("Not authenticated:", data);
-          router.push("/");
-          return;
-        }
-        console.log("User authenticated:", data);
-      } catch (error) {
-        console.error("Auth check failed:", error);
-        router.push("/");
-      } finally {
-        setLoading(false);
-      }
-    };
-    checkAuth();
-  }, [router]);
+  const [loading, setLoading] = useState(false);
+  // useEffect(() => {
+  //   const checkAuth = async () => {
+  //     try {
+  //       const res = await fetch(`${backendUrl}/auth/me`, {
+  //         method: "GET",
+  //         credentials: "include",
+  //       });
+  //       const data = await res.json();
+  //       if (!res.ok || !data.success) {
+  //         console.log("Not authenticated:", data);
+  //         router.push("/");
+  //         return;
+  //       }
+  //       console.log("User authenticated:", data);
+  //     } catch (error) {
+  //       console.error("Auth check failed:", error);
+  //       router.push("/");
+  //     } finally {
+  //       setLoading(false);
+  //     }
+  //   };
+  //   checkAuth();
+  // }, [router]);
   if (loading) {
     return <LoaderLove />;
   }

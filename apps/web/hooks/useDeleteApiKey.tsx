@@ -9,7 +9,7 @@ export function useDeleteApiKey() {
 
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ["my-api-keys"],
+        queryKey: ["api-keys"],
       });
     },
   });

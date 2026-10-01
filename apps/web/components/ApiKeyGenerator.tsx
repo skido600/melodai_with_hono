@@ -20,6 +20,7 @@ export default function ApiKeyGenerator() {
     generateApiKey.mutate(name, {
       onSuccess: (data) => {
         setGeneratedKey(data.apiKey);
+        console.log();
         toast.success("API key generated");
         setName("");
       },
@@ -69,7 +70,7 @@ export default function ApiKeyGenerator() {
         type="button"
         onClick={handleGenerate}
         disabled={generateApiKey.isPending}
-        className="mt-4 rounded-lg bg-[#83DAA1] px-5 py-3 font-medium text-black transition hover:opacity-90 disabled:opacity-50">
+        className="mt-4 rounded-lg bg-[#1DB954] px-5 py-3 font-medium text-white transition hover:opacity-90 disabled:opacity-50">
         {generateApiKey.isPending ? "Generating..." : "Generate API Key"}
       </button>
 

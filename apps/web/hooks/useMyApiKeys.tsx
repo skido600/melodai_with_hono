@@ -4,7 +4,7 @@ import type { ApiKey } from "@/types/music";
 
 export function useMyApiKeys() {
   return useQuery<ApiKey[]>({
-    queryKey: ["my-api-keys"],
+    queryKey: ["api-keys"],
     queryFn: getMyApiKeys,
   });
 }

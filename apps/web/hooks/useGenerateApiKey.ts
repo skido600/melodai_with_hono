@@ -9,7 +9,7 @@ export function useGenerateApiKey() {
 
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ["my-api-keys"],
+        queryKey: ["api-keys"],
       });
     },
   });

@@ -8,6 +8,7 @@ import toast from "react-hot-toast";
 
 export default function DeveloperPage() {
   const { data: keys = [], isLoading, isError } = useMyApiKeys();
+  console.log(keys, "api keys");
   const deleteMutation = useDeleteApiKey();
 
   const [copiedId, setCopiedId] = useState<string | null>(null);

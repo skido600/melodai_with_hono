@@ -5,9 +5,9 @@ import { extractMusicMetadata } from "../services/metadata.service";
 import { desc, eq, ilike, and, sql, or } from "drizzle-orm";
 export async function completeMusicUpload(c: Context) {
   try {
-    const userId = c.get("userId");
+    const authUser = c.get("userId");
 
-    if (!userId) {
+    if (!authUser?.id) {
       return c.json(
         {
           success: false,
@@ -17,6 +17,8 @@ export async function completeMusicUpload(c: Context) {
         401,
       );
     }
+
+    const userId = authUser.id;
 
     const { secureUrl, publicId, fileName, fileSize, mimeType } =
       await c.req.json();
@@ -169,9 +171,9 @@ export async function getAllMusic(c: Context) {
 
 export async function getMyMusic(c: Context) {
   try {
-    const userId = c.get("userId");
+    const authUser = c.get("userId");
 
-    if (!userId) {
+    if (!authUser?.id) {
       return c.json(
         {
           success: false,
@@ -181,6 +183,8 @@ export async function getMyMusic(c: Context) {
         401,
       );
     }
+
+    const userId = authUser.id;
 
     const query = c.req.query("q")?.trim();
 

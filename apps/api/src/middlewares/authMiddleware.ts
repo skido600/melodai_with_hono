@@ -10,12 +10,12 @@ import {
   setAuthCookies,
   FIFTEEN_MINUTES_SECONDS,
 } from "../utils/cookies";
+
 import { db } from "../configs";
 import { sessions, users } from "../configs/schema";
 
 export async function requireAuth(c: Context, next: Next) {
   try {
-    // Signed cookies
     const accessToken = await getSignedCookie(
       c,
       env.COOKIE_SECRET,
@@ -41,21 +41,21 @@ export async function requireAuth(c: Context, next: Next) {
           "HS256",
         );
 
-        const userId = payload.id as string;
-        const role = payload.role as string;
+        console.log("ACCESS PAYLOAD:", payload);
 
-        if (!userId || !role) {
+        const userId = payload.id as string;
+
+        if (!userId) {
           return clearAuthCookies(c);
         }
 
         c.set("userId", {
           id: userId,
-          role,
         });
 
         return next();
-      } catch {
-        console.log("Access token expired/invalid");
+      } catch (error) {
+        console.log("Access token expired/invalid:", error);
       }
     }
 
@@ -105,12 +105,12 @@ export async function requireAuth(c: Context, next: Next) {
       return clearAuthCookies(c);
     }
 
-    // 4. Get current user
+    // 4. Check user exists
     const [user] = await db
       .select({
         id: users.id,
         email: users.email,
-        full_name: users.username,
+        name: users.name,
       })
       .from(users)
       .where(eq(users.id, userId))
@@ -120,17 +120,18 @@ export async function requireAuth(c: Context, next: Next) {
       return clearAuthCookies(c);
     }
 
-    // 5. Create new access token
+    // 5. Generate new access token
     const newAccessToken = await sign(
       {
         id: user.id,
-
+        email: user.email,
+        name: user.name,
         exp: Math.floor(Date.now() / 1000) + FIFTEEN_MINUTES_SECONDS,
       },
       env.JWT_ACCESS_SECRET,
     );
 
-    // 6. Replace access cookie
+    // 6. Set new access cookie
     await setAuthCookies(c, newAccessToken, refreshToken);
 
     c.set("userId", {

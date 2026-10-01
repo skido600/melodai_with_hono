@@ -2,14 +2,14 @@ import type { Context } from "hono";
 import crypto from "node:crypto";
 import { db } from "../configs";
 import { apiKeys } from "../configs/schema";
-import { hashApiKey } from "../utils/hmac";
+import { encryptKey, decryptKey } from "../utils/hmac";
 import { desc, eq, and } from "drizzle-orm";
 
 export async function generateApiKey(c: Context) {
   try {
-    const userId = c.get("userId");
+    const authUser = c.get("userId");
 
-    if (!userId) {
+    if (!authUser?.id) {
       return c.json(
         {
           success: false,
@@ -20,9 +20,13 @@ export async function generateApiKey(c: Context) {
       );
     }
 
+    const userId = authUser.id;
+
     const { name } = await c.req.json();
 
-    if (!name?.trim()) {
+    const trimmedName = name?.trim();
+
+    if (!trimmedName) {
       return c.json(
         {
           success: false,
@@ -32,17 +36,34 @@ export async function generateApiKey(c: Context) {
         400,
       );
     }
+    const existingKey = await db
+      .select({ id: apiKeys.id })
+      .from(apiKeys)
+      .where(and(eq(apiKeys.userId, userId), eq(apiKeys.name, trimmedName)))
+      .limit(1);
+    if (existingKey.length > 0) {
+      return c.json(
+        {
+          success: false,
+          message: "You already have an API key with this name",
+          data: null,
+        },
+        409,
+      );
+    }
+    // Generate the actual API key
+    const apiKey = `melodia_${crypto.randomBytes(32).toString("hex")}`;
 
-    const apiKey = `mel_${crypto.randomBytes(32).toString("hex")}`;
-
-    const keyHash = hashApiKey(apiKey);
+    // Only store the hash in the database
+    // Encrypt the API key before storing it
+    const encryptedKey = encryptKey(apiKey);
 
     const [newApiKey] = await db
       .insert(apiKeys)
       .values({
         userId,
         name: name.trim(),
-        keyHash,
+        encryptedKey,
       })
       .returning({
         id: apiKeys.id,
@@ -53,7 +74,12 @@ export async function generateApiKey(c: Context) {
     return c.json({
       success: true,
       message: "API key generated successfully",
-      data: { name: name.trim(), apiKey: keyHash },
+      data: {
+        id: newApiKey.id,
+        name: newApiKey.name,
+        apiKey, // return actual key only once
+        createdAt: newApiKey.createdAt,
+      },
     });
   } catch (error) {
     console.error("Generate API key error:", error);
@@ -71,46 +97,9 @@ export async function generateApiKey(c: Context) {
 
 export async function getMyApiKeys(c: Context) {
   try {
-    const userId = c.get("userId");
-    if (!userId) {
-      return c.json(
-        { success: false, message: "Unauthorized", data: null },
-        401,
-      );
-    }
-    const keys = await db
-      .select({
-        id: apiKeys.id,
-        name: apiKeys.name,
-        active: apiKeys.active,
-        apiKey: apiKeys.keyHash,
-        createdAt: apiKeys.createdAt,
-        lastUsedAt: apiKeys.lastUsedAt,
-      })
-      .from(apiKeys)
-      .where(eq(apiKeys.userId, userId))
-      .orderBy(desc(apiKeys.createdAt));
+    const authUser = c.get("userId");
 
-    return c.json({
-      success: true,
-      message: "API keys fetched successfully",
-      data: keys,
-    });
-  } catch (error) {
-    console.error("Get API keys error:", error);
-    return c.json(
-      { success: false, message: "Could not get API keys", data: error },
-      500,
-    );
-  }
-}
-
-export async function deleteApiKey(c: Context) {
-  try {
-    const userId = c.get("userId");
-    const keyId = c.req.param("id");
-
-    if (!userId) {
+    if (!authUser?.id) {
       return c.json(
         {
           success: false,
@@ -120,6 +109,66 @@ export async function deleteApiKey(c: Context) {
         401,
       );
     }
+
+    const userId = authUser.id;
+
+    const keys = await db
+      .select({
+        id: apiKeys.id,
+        name: apiKeys.name,
+        active: apiKeys.active,
+        createdAt: apiKeys.createdAt,
+        lastUsedAt: apiKeys.lastUsedAt,
+        encryptedKey: apiKeys.encryptedKey,
+      })
+      .from(apiKeys)
+      .where(eq(apiKeys.userId, userId))
+      .orderBy(desc(apiKeys.createdAt));
+    const decryptedKeys = keys.map((key) => ({
+      id: key.id,
+      name: key.name,
+      apiKey: decryptKey(key.encryptedKey),
+      active: key.active,
+      createdAt: key.createdAt,
+      lastUsedAt: key.lastUsedAt,
+    }));
+    return c.json({
+      success: true,
+      message: "API keys fetched successfully",
+      data: decryptedKeys,
+    });
+  } catch (error) {
+    console.error("Get API keys error:", error);
+
+    return c.json(
+      {
+        success: false,
+        message: "Could not get API keys",
+        data: null,
+      },
+      500,
+    );
+  }
+}
+
+export async function deleteApiKey(c: Context) {
+  try {
+    const authUser = c.get("userId");
+
+    if (!authUser?.id) {
+      return c.json(
+        {
+          success: false,
+          message: "Unauthorized",
+          data: null,
+        },
+        401,
+      );
+    }
+
+    const userId = authUser.id;
+
+    const keyId = c.req.param("id");
 
     if (!keyId) {
       return c.json(

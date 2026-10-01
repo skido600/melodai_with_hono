@@ -3,7 +3,7 @@ import { google } from "googleapis";
 import { getGoogleAuthUrl, oauth2Client } from "../utils/google.service";
 import { generateTokens } from "../utils/auth_token";
 
-import { getCookie, deleteCookie } from "hono/cookie";
+import { getCookie, getSignedCookie } from "hono/cookie";
 import { eq } from "drizzle-orm";
 import { sessions, users } from "../configs/schema";
 import { clearAuthCookies, setAuthCookies } from "../utils/cookies";
@@ -88,9 +88,10 @@ export class AuthController {
         expiresAt: refreshExpDate,
       });
 
-      setAuthCookies(c, accessToken, refreshToken);
-
-      return c.redirect(`${env.FRONTEND_URL}/dashboard`, 302);
+      await setAuthCookies(c, accessToken, refreshToken);
+      const frontendurl = env.FRONTEND_URL;
+      console.log(frontendurl, "frontend url");
+      return c.redirect(`${frontendurl}/dashboard`, 302);
       // return c.json({
       //   success: true,
       //   message: "Google authentication successful",
@@ -112,9 +113,9 @@ export class AuthController {
   }
   static async getMe(c: Context) {
     try {
-      const userId = c.get("userId");
+      const authUser = c.get("userId");
 
-      if (!userId) {
+      if (!authUser?.id) {
         return c.json(
           {
             success: false,
@@ -125,6 +126,7 @@ export class AuthController {
         );
       }
 
+      const userId = authUser.id;
       const [user] = await db
         .select({
           id: users.id,
@@ -167,8 +169,11 @@ export class AuthController {
   }
   static async logout(c: Context) {
     try {
-      const refreshToken = getCookie(c, "refreshToken");
-
+      const refreshToken = await getSignedCookie(
+        c,
+        env.COOKIE_SECRET,
+        "refreshToken",
+      );
       if (refreshToken) {
         await db
           .delete(sessions)
@@ -184,6 +189,8 @@ export class AuthController {
       });
     } catch (error) {
       console.error("Logout error:", error);
+      // Even if DB deletion fails, don't leave the browser authenticated
+      clearAuthCookies(c);
 
       return c.json(
         {

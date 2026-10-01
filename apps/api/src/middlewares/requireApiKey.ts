@@ -2,34 +2,51 @@ import type { Context, Next } from "hono";
 import { eq } from "drizzle-orm";
 import { db } from "../configs";
 import { apiKeys } from "../configs/schema";
-import { hashApiKey } from "../utils/hmac";
+import { decryptKey } from "../utils/hmac";
 
 export async function requireApiKey(c: Context, next: Next) {
   try {
-    const apiKey = c.req.header("x-api-key");
+    // Accept:
+    // x-api-key: melodia_xxxxx
+    // Authorization: Bearer melodia_xxxxx
 
-    if (!apiKey) {
+    const bearer = c.req.header("authorization")?.replace(/^Bearer\s+/i, "");
+
+    const apiKey = c.req.header("x-api-key") ?? bearer;
+
+    if (!apiKey || !apiKey.startsWith("melodia_")) {
       return c.json(
         {
           success: false,
-          message: "API key is required",
+          message: "Missing or invalid API key",
           data: null,
         },
         401,
       );
     }
 
-    const [key] = await db
+    // Get active API keys
+    const records = await db
       .select({
         id: apiKeys.id,
         userId: apiKeys.userId,
         active: apiKeys.active,
+        encryptedKey: apiKeys.encryptedKey,
       })
       .from(apiKeys)
-      .where(eq(apiKeys.keyHash, apiKey))
-      .limit(1);
+      .where(eq(apiKeys.active, true));
 
-    if (!key) {
+    // Decrypt and compare
+    const record = records.find((record) => {
+      try {
+        const decryptedKey = decryptKey(record.encryptedKey);
+        return decryptedKey === apiKey;
+      } catch {
+        return false;
+      }
+    });
+
+    if (!record) {
       return c.json(
         {
           success: false,
@@ -40,28 +57,29 @@ export async function requireApiKey(c: Context, next: Next) {
       );
     }
 
-    if (!key.active) {
-      return c.json(
-        {
-          success: false,
-          message: "API key has been revoked",
-          data: null,
-        },
-        401,
-      );
-    }
+    // Update lastUsedAt without blocking the request
+    db.update(apiKeys)
+      .set({
+        lastUsedAt: new Date(),
+      })
+      .where(eq(apiKeys.id, record.id))
+      .catch((err) => {
+        console.error("lastUsedAt update failed:", err);
+      });
 
-    c.set("apiKeyId", key.id);
-    c.set("apiUserId", key.userId);
+    // Make user available to handlers
+    c.set("userId", {
+      id: record.userId,
+    });
 
     await next();
   } catch (error) {
-    console.error("API key middleware error:", error);
+    console.error("API key auth error:", error);
 
     return c.json(
       {
         success: false,
-        message: "Could not verify API key",
+        message: "Authentication failed",
         data: null,
       },
       500,

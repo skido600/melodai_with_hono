@@ -17,6 +17,8 @@ export const envSchema = z.object({
   CLOUDINARY_API_KEY: z.string(),
   CLOUDINARY_API_SECRET: z.string(),
   COOKIE_SECRET: z.string(),
+  API_KEY_SECRET: z.string(),
+  API_KEY_ENC_SECRET: z.string(),
 });
 
 export const env = envSchema.parse(process.env);
