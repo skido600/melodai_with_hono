@@ -8,9 +8,9 @@ import LoaderLove from "@/helper/loaderLove";
 import { useMobile } from "@/hooks/MobileContext";
 import { MusicProvider } from "@/hooks/MusicProvider";
 import { useRouter } from "next/navigation";
+import { useQuery } from "@tanstack/react-query";
+import { getMe } from "@/util/music-api";
 
-import { useEffect, useState } from "react";
-const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL!;
 export default function DashboardClientLayout({
   children,
 }: {
@@ -18,33 +18,26 @@ export default function DashboardClientLayout({
 }) {
   const { open } = useMobile();
   const router = useRouter();
-  const [loading, setLoading] = useState(false);
-  // useEffect(() => {
-  //   const checkAuth = async () => {
-  //     try {
-  //       const res = await fetch(`${backendUrl}/auth/me`, {
-  //         method: "GET",
-  //         credentials: "include",
-  //       });
-  //       const data = await res.json();
-  //       if (!res.ok || !data.success) {
-  //         console.log("Not authenticated:", data);
-  //         router.push("/");
-  //         return;
-  //       }
-  //       console.log("User authenticated:", data);
-  //     } catch (error) {
-  //       console.error("Auth check failed:", error);
-  //       router.push("/");
-  //     } finally {
-  //       setLoading(false);
-  //     }
-  //   };
-  //   checkAuth();
-  // }, [router]);
-  if (loading) {
+
+  const {
+    data: user,
+    isLoading,
+    isError,
+  } = useQuery({
+    queryKey: ["me"],
+    queryFn: getMe,
+    retry: false,
+  });
+
+  if (isLoading) {
     return <LoaderLove />;
   }
+
+  if (isError || !user) {
+    router.replace("/");
+    return <LoaderLove />;
+  }
+
   return (
     <MusicProvider>
       <div className="min-h-screen bg-background">

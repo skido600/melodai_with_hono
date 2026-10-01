@@ -19,6 +19,7 @@ export const getGoogleAuthUrl = (redirectTo?: string) => {
     access_type: "offline",
     scope: ["openid", "email", "profile"],
   });
-
+  console.log("GOOGLE OAUTH URL:", url);
+  console.log("GOOGLE REDIRECT URI:", GOOGLE_CALLBACK_URL);
   return url;
 };
