@@ -9,6 +9,7 @@ import { useUploadMusic } from "@/hooks/useUploadMusic";
 import { useDeleteMusic } from "@/hooks/useDeleteMusic";
 import { useMusicPlayer } from "@/hooks/MusicProvider";
 import Skeleton from "@/helper/Skeleton";
+import Profile from "@/components/Profile";
 
 export default function ProfilePage() {
   const uploadMusic = useUploadMusic();
@@ -101,7 +102,7 @@ export default function ProfilePage() {
         {/* My Songs */}
         <footer className="mt-10">
           <h2 className="text-xl">My songs</h2>
-
+          <Profile />
           {/* Search */}
           <div className="mt-4 flex gap-2 lg:w-96">
             <input

@@ -127,16 +127,17 @@ export class AuthController {
       }
 
       const userId = authUser.id;
-      const [user] = await db
-        .select({
-          id: users.id,
-          name: users.name,
-          email: users.email,
-          createdAt: users.createdAt,
-        })
-        .from(users)
-        .where(eq(users.id, userId))
-        .limit(1);
+    const [user] = await db
+      .select({
+        id: users.id,
+        name: users.name,
+        email: users.email,
+        avatarUrl: users.avatarUrl,
+        createdAt: users.createdAt,
+      })
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1);
 
       if (!user) {
         return c.json(
