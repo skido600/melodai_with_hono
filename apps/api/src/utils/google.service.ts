@@ -1,10 +1,11 @@
 import { google } from "googleapis";
 import { env } from "../env";
-
+const GOOGLE_CALLBACK_URL = `${env.FRONTEND_URL}/api/auth/google/callback`;
+console.log("GOOGLE_CALLBACK_URL", GOOGLE_CALLBACK_URL);
 export const oauth2Client = new google.auth.OAuth2(
   env.GOOGLE_CLIENT_ID,
   env.GOOGLE_CLIENT_SECRET,
-  `${env.FRONTEND_URL}/api/auth/google/callback`,
+  GOOGLE_CALLBACK_URL,
 );
 
 // export const getGoogleAuthUrl = (redirectTo?: string) => {

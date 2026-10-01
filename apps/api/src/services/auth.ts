@@ -57,7 +57,7 @@ export class AuthController {
           400,
         );
       }
-      console.log("2 - Google user:", data);
+
       let user = await db.query.users.findFirst({
         where: eq(users.email, data.email),
       });
@@ -75,13 +75,13 @@ export class AuthController {
             authMethod: "google",
           })
           .returning();
-        console.log("CREATED USER:", newUser);
+
         user = newUser;
       }
-      console.log("6 - User going to token generation:", user);
+
       const { accessToken, refreshToken, refreshExpDate } =
         await generateTokens(user.id, user.email, user.name);
-      console.log("accesstoken", accessToken);
+
       await db.insert(sessions).values({
         userId: user.id,
         refreshToken,
