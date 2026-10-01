@@ -22,14 +22,6 @@ export default function Profile() {
 
   return (
     <div className="flex items-center gap-3 rounded-lg p-2">
-      <Image
-        src={user.avatarUrl || "/default-avatar.png"}
-        alt={user.name || "User"}
-        width={40}
-        height={40}
-        className="h-10 w-10 rounded-full object-cover"
-      />
-
       <div className="min-w-0">
         <h1 className="truncate text-xs font-semibold">{user.name}</h1>
 

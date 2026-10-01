@@ -102,7 +102,7 @@ export default function ProfilePage() {
         {/* My Songs */}
         <footer className="mt-10">
           <h2 className="text-xl">My songs</h2>
-          <Profile />
+
           {/* Search */}
           <div className="mt-4 flex gap-2 lg:w-96">
             <input

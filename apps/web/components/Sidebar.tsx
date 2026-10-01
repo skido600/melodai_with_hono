@@ -1,26 +1,30 @@
+"use client";
+
 import Link from "next/link";
-
-import Logo from "./Logo";
 import Image from "next/image";
-
-import { navigation } from "@/util/navigvation";
-import { useLogout } from "@/hooks/useLogout";
+import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 
+import Logo from "./Logo";
+import { navigation } from "@/util/navigvation";
+import { useLogout } from "@/hooks/useLogout";
+import { useMe } from "@/hooks/useme";
+
 function Sidebar() {
-  const menuItems = navigation;
+  const router = useRouter();
   const logoutMutation = useLogout();
-  const logout = {
-    name: "Logout",
-    img: "logut.svg",
-  };
+  const { data: user, isLoading, isError } = useMe();
+
+  console.log("SIDEBAR USER:", user);
+  console.log("SIDEBAR ERROR:", isError);
+
   const handleLogout = () => {
     logoutMutation.mutate(undefined, {
       onSuccess: () => {
         toast.success("Logged out successfully");
 
         setTimeout(() => {
-          window.location.href = "/signup";
+          router.replace("/signup");
         }, 500);
       },
 
@@ -31,56 +35,76 @@ function Sidebar() {
       },
     });
   };
+
   return (
-    <main className="fixed hidden   text-white md:bg-[#131313]  w-50 top-0 bottom-0 p-5 lg:flex flex-col justify-between">
+    <main className="fixed top-0 bottom-0 hidden w-50 flex-col justify-between bg-[#131313] p-5 text-white lg:flex">
+      {/* TOP */}
       <div>
         <Logo />
 
-        <div className="flex flex-col space-y-4  mt-6">
-          {menuItems.map((route, index) => (
+        <div className="mt-6 flex flex-col space-y-4">
+          {navigation.map((route, index) => (
             <Link href={route.path} key={index}>
-              <div className="flex gap-x-2  items-center   cursor-pointer">
+              <div className="flex cursor-pointer items-center gap-x-2">
                 <Image
                   src={route.img}
                   alt={route.name}
-                  height={20}
-                  width={20}
-                  className="w-[21.33px] h-6"
+                  width={21}
+                  height={24}
                 />
-                <p className="  text-white font-bold text-sm ">{route.name}</p>
+
+                <p className="text-sm font-bold text-white">{route.name}</p>
               </div>
             </Link>
           ))}
         </div>
       </div>
-      <div className="grid gap-2 items-center space-y-2">
-        <div
-          role="button"
-          aria-disabled={logoutMutation.isPending}
-          onClick={() => {
-            if (!logoutMutation.isPending) {
-              handleLogout();
-            }
-          }}
-          className={`md:flex items-center cursor-pointer transition-opacity ${
+
+      {/* BOTTOM */}
+      <div className="space-y-4">
+        {/* PROFILE */}
+        <Link
+          href="/profile"
+          className="flex items-center gap-3 rounded-lg p-2 transition hover:bg-white/5 text-white">
+          {isLoading ? (
+            <div className="h-9 w-9 animate-pulse rounded-full bg-white/10" />
+          ) : (
+            <Image
+              src={user?.avatarUrl}
+              alt={user?.name}
+              width={36}
+              height={36}
+              className="h-9 w-9 rounded-full object-cover"
+            />
+          )}
+
+          <div className="min-w-0">
+            <p className="truncate text-sm font-semibold">{user?.name}</p>
+
+            <p className="truncate text-[11px] text-gray-400">{user?.email}</p>
+          </div>
+        </Link>
+
+        {/* LOGOUT */}
+        <button
+          type="button"
+          disabled={logoutMutation.isPending}
+          onClick={handleLogout}
+          className={`flex w-full items-center gap-2 cursor-pointer transition-opacity ${
             logoutMutation.isPending ? "pointer-events-none opacity-60" : ""
           }`}>
           <Image
-            src={logout.img}
-            alt={logout.name}
-            height={20}
-            width={20}
-            className={`w-[21.33px] h-6 transition-all duration-300 ${
-              logoutMutation.isPending
-                ? "scale-75 opacity-50"
-                : "scale-100 opacity-100"
-            }`}
+            src="/logut.svg"
+            alt="Logout"
+            width={21}
+            height={24}
+            className="h-6 w-[21px]"
           />
 
-          <p className="text-white font-bold text-sm md:block">
+          <p className="text-sm font-bold text-white">
             {logoutMutation.isPending ? "Logging out..." : "Logout"}
           </p>
-        </div>
+        </button>
       </div>
     </main>
   );

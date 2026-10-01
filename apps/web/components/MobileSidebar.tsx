@@ -6,16 +6,21 @@ import { navigation } from "@/util/navigvation";
 import toast from "react-hot-toast";
 import { useLogout } from "@/hooks/useLogout";
 import { useRouter } from "next/navigation";
+import { useMe } from "@/hooks/useme";
 import Logo from "./Logo";
+
 function MobileSidebar() {
   const menuItems = navigation;
   const logoutMutation = useLogout();
   const router = useRouter();
+
+  const { data: user, isLoading } = useMe();
+
   const logout = {
     name: "Logout",
-
     img: "logut.svg",
   };
+
   const handleLogout = () => {
     logoutMutation.mutate(undefined, {
       onSuccess: () => {
@@ -33,50 +38,66 @@ function MobileSidebar() {
       },
     });
   };
+
   return (
     <main
       className="
         fixed
-    
         inset-y-0
         left-0
         flex
         w-12
         flex-col
-        lg:hidden
         bg-[#101010]
+        lg:hidden
         z-50
       ">
-      <div className="flex  flex-col space-y-4 mt-6">
-        {" "}
+      {/* TOP */}
+      <div className="mt-6 flex flex-col space-y-4">
         <Logo h={40} w={40} />
+
         {menuItems.map((route, index) => (
           <Link href={route.path} key={index}>
-            <div className="flex gap-x-2 ml-3 items-center cursor-pointer">
+            <div className="ml-3 flex cursor-pointer items-center">
               <Image
                 src={route.img}
                 alt={route.name}
                 height={20}
                 width={20}
-                className="w-[21.33px] h-6"
+                className="h-6 w-[21.33px]"
               />
             </div>
           </Link>
         ))}
       </div>
 
-      {/* Logout */}
-      {/* Logout */}
-      <div className="mt-auto pb-6 ml-3">
-        <div
-          role="button"
-          aria-disabled={logoutMutation.isPending}
-          onClick={() => {
-            if (!logoutMutation.isPending) {
-              handleLogout();
-            }
-          }}
-          className={`flex items-center cursor-pointer transition-opacity ${
+      {/* BOTTOM */}
+      <div className="mt-auto flex flex-col items-center gap-5 pb-6">
+        {/* PROFILE IMAGE */}
+        <Link href="/profile">
+          {isLoading ? (
+            <div className="h-8 w-8 animate-pulse rounded-full bg-white/10" />
+          ) : user?.avatarUrl ? (
+            <Image
+              src={user.avatarUrl}
+              alt={user.name || "User"}
+              width={32}
+              height={32}
+              className="h-8 w-8 rounded-full object-cover"
+            />
+          ) : (
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-700 text-xs font-bold text-white">
+              {user?.name?.charAt(0).toUpperCase() || "U"}
+            </div>
+          )}
+        </Link>
+
+        {/* LOGOUT */}
+        <button
+          type="button"
+          disabled={logoutMutation.isPending}
+          onClick={handleLogout}
+          className={`cursor-pointer transition-opacity ${
             logoutMutation.isPending ? "pointer-events-none opacity-60" : ""
           }`}>
           <Image
@@ -84,13 +105,9 @@ function MobileSidebar() {
             alt={logout.name}
             height={20}
             width={20}
-            className={`w-[21.33px] h-6 transition-all duration-300 ${
-              logoutMutation.isPending
-                ? "scale-75 opacity-40 animate-pulse"
-                : "scale-100 opacity-100"
-            }`}
+            className="h-6 w-[21.33px]"
           />
-        </div>
+        </button>
       </div>
     </main>
   );
