@@ -66,17 +66,19 @@ function Sidebar() {
         <Link
           href="/profile"
           className="flex items-center gap-3 rounded-lg p-2 transition hover:bg-white/5 text-white">
-          {isLoading ? (
-            <div className="h-9 w-9 animate-pulse rounded-full bg-white/10" />
-          ) : (
-            <Image
-              src={user?.avatarUrl}
-              alt={user?.name}
-              width={36}
-              height={36}
-              className="h-9 w-9 rounded-full object-cover"
-            />
-          )}
+          <Link href="/profile">
+            {isLoading ? (
+              <div className="h-8 w-8 animate-pulse rounded-full bg-white/10" />
+            ) : user?.avatarUrl ? (
+              <Image
+                src={user.avatarUrl}
+                alt={user.name}
+                width={32}
+                height={32}
+                className="h-8 w-8 rounded-full object-cover"
+              />
+            ) : null}
+          </Link>
 
           <div className="min-w-0">
             <p className="truncate text-sm font-semibold">{user?.name}</p>

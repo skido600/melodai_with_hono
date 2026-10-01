@@ -17,26 +17,26 @@ export default function DashboardClientLayout({
   children: React.ReactNode;
 }) {
   const { open } = useMobile();
-  const router = useRouter();
+  // const router = useRouter();
 
-  const {
-    data: user,
-    isLoading,
-    isError,
-  } = useQuery({
-    queryKey: ["me"],
-    queryFn: getMe,
-    retry: false,
-  });
+  // const {
+  //   data: user,
+  //   isLoading,
+  //   isError,
+  // } = useQuery({
+  //   queryKey: ["me"],
+  //   queryFn: getMe,
+  //   retry: false,
+  // });
 
-  if (isLoading) {
-    return <LoaderLove />;
-  }
+  // if (isLoading) {
+  //   return <LoaderLove />;
+  // }
 
-  if (isError || !user) {
-    router.replace("/");
-    return <LoaderLove />;
-  }
+  // if (isError || !user) {
+  //   router.replace("/");
+  //   return <LoaderLove />;
+  // }
 
   return (
     <MusicProvider>
