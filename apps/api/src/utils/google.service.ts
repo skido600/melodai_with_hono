@@ -4,7 +4,7 @@ import { env } from "../env";
 export const oauth2Client = new google.auth.OAuth2(
   env.GOOGLE_CLIENT_ID,
   env.GOOGLE_CLIENT_SECRET,
-  `${env.BACKEND_URL}/auth/google/callback`,
+  `${env.FRONTEND_URL}/api/auth/google/callback`,
 );
 
 // export const getGoogleAuthUrl = (redirectTo?: string) => {
