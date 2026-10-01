@@ -20,11 +20,5 @@ export const getGoogleAuthUrl = (redirectTo?: string) => {
     scope: ["openid", "email", "profile"],
   });
 
-  console.log("GOOGLE OAUTH URL:", url);
-  console.log(
-    "GOOGLE REDIRECT URI:",
-    `${env.BACKEND_URL}/auth/google/callback`,
-  );
-
   return url;
 };
