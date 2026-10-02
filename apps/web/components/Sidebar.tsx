@@ -13,10 +13,7 @@ import { useMe } from "@/hooks/useme";
 function Sidebar() {
   const router = useRouter();
   const logoutMutation = useLogout();
-  const { data: user, isLoading, isError } = useMe();
-
-  console.log("SIDEBAR USER:", user);
-  console.log("SIDEBAR ERROR:", isError);
+  const { data: user, isLoading } = useMe();
 
   const handleLogout = () => {
     logoutMutation.mutate(undefined, {
